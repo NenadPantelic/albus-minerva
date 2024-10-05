@@ -1,6 +1,7 @@
 package rs.ac.kg.fin.albus.minerva.service.impl;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -12,6 +13,7 @@ import rs.ac.kg.fin.albus.minerva.dto.DetailedSubmissionDTO;
 import rs.ac.kg.fin.albus.minerva.dto.MinimalSubmissionDTO;
 import rs.ac.kg.fin.albus.minerva.dto.NewSubmission;
 import rs.ac.kg.fin.albus.minerva.dto.SubmissionAllowance;
+import rs.ac.kg.fin.albus.minerva.event.data.SubmissionEventProducer;
 import rs.ac.kg.fin.albus.minerva.exception.ApiException;
 import rs.ac.kg.fin.albus.minerva.mapper.SubmissionMapper;
 import rs.ac.kg.fin.albus.minerva.model.ExecutedTestCase;
@@ -33,15 +35,18 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionProhibitionRepository submissionProhibitionRepository;
     private final ExecutedTestCaseRepository executedTestCaseRepository;
+    private final SubmissionEventProducer submissionEventProducer;
     private final int submissionsLimitPerAssignment;
 
     public SubmissionServiceImpl(SubmissionRepository submissionRepository,
                                  SubmissionProhibitionRepository submissionProhibitionRepository,
                                  ExecutedTestCaseRepository executedTestCaseRepository,
+                                 SubmissionEventProducer submissionEventProducer,
                                  SubmissionConfigProperties submissionConfigProperties) {
         this.submissionRepository = submissionRepository;
         this.submissionProhibitionRepository = submissionProhibitionRepository;
         this.executedTestCaseRepository = executedTestCaseRepository;
+        this.submissionEventProducer = submissionEventProducer;
         submissionsLimitPerAssignment = submissionConfigProperties.getSubmissionsLimitPerAssignment();
     }
 
@@ -77,7 +82,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .build();
 
         submission = submissionRepository.save(submission);
-        return SubmissionMapper.mapToMinimalDTO(submission);
+        try {
+            submissionEventProducer.sendSubmissionEvent(submission);
+            return SubmissionMapper.mapToMinimalDTO(submission);
+        } catch (JsonProcessingException e) {
+            log.error("Unable to send a submission event due to {}", e.getMessage(), e);
+            submissionRepository.delete(submission);
+            throw new ApiException("Submission processing failed", 500);
+        }
     }
 
     @Override
