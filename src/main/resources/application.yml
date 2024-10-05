@@ -1,0 +1,48 @@
+# server config
+server:
+  port: 9091
+
+
+# database settings
+spring:
+  data:
+    mongodb:
+      authentication-database: admin
+      username: minerva
+      password: griff1nd00r
+      database: minerva
+      port: 27017
+      host: localhost
+      auto-index-creation: true
+
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: post-action-events-listener-group
+      topic: submission-grading-result-events
+      properties:
+        json:
+          value:
+            default:
+              type: rs.ac.kg.fin.albus.minerva.event.data.CodeSubmission
+          trusted:
+            packages: rs.ac.kg.fin.albus.minerva
+
+    producer:
+      bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      topic: code-submission-events
+      properties:
+        json:
+          value:
+            default:
+              type: rs.ac.kg.fin.albus.minerva.event.data.CodeSubmission
+          trusted:
+            packages: rs.ac.kg.fin.albus.minerva
+
+    admin:
+      properties:
+        bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
