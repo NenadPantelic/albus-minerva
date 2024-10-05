@@ -10,6 +10,6 @@ public record MinimalSubmissionDTO(String id,
                                    String assignmentId,
                                    String examId,
                                    String assignmentName,
-                                   int score,
+                                   float score,
                                    SubmissionStatus status) {
 }

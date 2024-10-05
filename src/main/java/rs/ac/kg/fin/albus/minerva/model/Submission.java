@@ -29,8 +29,8 @@ public class Submission {
     private String assignmentName;
     @Builder.Default
     private SubmissionStatus status = SubmissionStatus.PENDING;
-    private int score;
-    private int maxPoints;
+    private float score;
+    private float maxPoints;
     @CreatedDate
     private Instant createdAt;
     @LastModifiedDate

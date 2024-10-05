@@ -13,7 +13,8 @@ import rs.ac.kg.fin.albus.minerva.service.SubmissionService;
 import java.util.List;
 
 @Slf4j
-@RestController("/api/v1/submissions")
+@RestController
+@RequestMapping("/api/v1/submissions")
 public class SubmissionController {
 
     private final SubmissionService submissionService;

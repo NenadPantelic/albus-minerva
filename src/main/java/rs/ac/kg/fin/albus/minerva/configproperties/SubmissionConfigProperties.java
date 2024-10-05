@@ -8,5 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 //@ConstructorBinding
 public class SubmissionConfigProperties {
 
-    private final int submissionsLimitPerAssignment;
+    private final int userLimitPerAssignment;
 }

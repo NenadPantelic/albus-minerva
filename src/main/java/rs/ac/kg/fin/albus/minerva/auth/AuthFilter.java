@@ -53,7 +53,6 @@ public class AuthFilter extends OncePerRequestFilter {
 
     }
 
-
     private Authentication getAuthentication(HttpServletRequest request) {
         final String userId = request.getHeader(USER_ID_HEADER);
         final String userRole = request.getHeader(USER_ROLE_HEADER);

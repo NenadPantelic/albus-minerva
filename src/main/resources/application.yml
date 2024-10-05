@@ -19,31 +19,38 @@ spring:
     consumer:
       bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       group-id: submission-grading-events-listener-group
       topic: submission-grading-result-events
-      properties:
-        json:
-          value:
-            default:
-              type: rs.ac.kg.fin.albus.minerva.event.data.SubmissionGradingResult
-          trusted:
-            packages: rs.ac.kg.fin.albus.minerva
+#      properties:
+#        json:
+#          value:
+#            default:
+#              type: rs.ac.kg.fin.albus.minerva.event.data.SubmissionGradingResult
+#          trusted:
+#            packages: rs.ac.kg.fin.albus.*
 
     producer:
       bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # class that is used on both ends (in producer to serialize and consumer to deserialize)
+      # must be common, so serde could happen out of the box without any manual intervention, then Spring Kafka
+      # serde JsonSerializer/JsonDeserializer could be used
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
       topic: code-submission-events
-      properties:
-        json:
-          value:
-            default:
-              type: rs.ac.kg.fin.albus.minerva.event.data.CodeSubmission
-          trusted:
-            packages: rs.ac.kg.fin.albus.minerva
+#      properties:
+#        json:
+#          value:
+#            default:
+#              type: rs.ac.kg.fin.albus.minerva.event.data.CodeSubmission
+#          trusted:
+#            packages: rs.ac.kg.fin.albus.*
 
     admin:
       properties:
         bootstrap-servers: localhost:9092, localhost:9093, localhost:9094
 
+submissions:
+  user-limit-per-assignment: 10

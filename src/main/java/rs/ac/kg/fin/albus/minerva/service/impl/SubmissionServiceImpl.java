@@ -13,7 +13,7 @@ import rs.ac.kg.fin.albus.minerva.dto.DetailedSubmissionDTO;
 import rs.ac.kg.fin.albus.minerva.dto.MinimalSubmissionDTO;
 import rs.ac.kg.fin.albus.minerva.dto.NewSubmission;
 import rs.ac.kg.fin.albus.minerva.dto.SubmissionAllowance;
-import rs.ac.kg.fin.albus.minerva.event.data.SubmissionEventProducer;
+import rs.ac.kg.fin.albus.minerva.event.SubmissionEventHandler;
 import rs.ac.kg.fin.albus.minerva.exception.ApiException;
 import rs.ac.kg.fin.albus.minerva.mapper.SubmissionMapper;
 import rs.ac.kg.fin.albus.minerva.model.ExecutedTestCase;
@@ -35,19 +35,19 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionProhibitionRepository submissionProhibitionRepository;
     private final ExecutedTestCaseRepository executedTestCaseRepository;
-    private final SubmissionEventProducer submissionEventProducer;
+    private final SubmissionEventHandler submissionEventHandler;
     private final int submissionsLimitPerAssignment;
 
     public SubmissionServiceImpl(SubmissionRepository submissionRepository,
                                  SubmissionProhibitionRepository submissionProhibitionRepository,
                                  ExecutedTestCaseRepository executedTestCaseRepository,
-                                 SubmissionEventProducer submissionEventProducer,
+                                 SubmissionEventHandler submissionEventHandler,
                                  SubmissionConfigProperties submissionConfigProperties) {
         this.submissionRepository = submissionRepository;
         this.submissionProhibitionRepository = submissionProhibitionRepository;
         this.executedTestCaseRepository = executedTestCaseRepository;
-        this.submissionEventProducer = submissionEventProducer;
-        submissionsLimitPerAssignment = submissionConfigProperties.getSubmissionsLimitPerAssignment();
+        this.submissionEventHandler = submissionEventHandler;
+        submissionsLimitPerAssignment = submissionConfigProperties.getUserLimitPerAssignment();
     }
 
     @Override
@@ -57,12 +57,14 @@ public class SubmissionServiceImpl implements SubmissionService {
         String userId = getUserId();
         String assignmentId = newSubmission.assignmentId();
 
-        if (submissionProhibitionRepository.existsSubmissionProhibition(userId, assignmentId)) {
-            throw new ApiException("You reached the maximum number of submissions", 403);
-        }
+        // TODO
+//        if (submissionProhibitionRepository.existsSubmissionProhibition(userId, assignmentId)) {
+//            throw new ApiException("You reached the maximum number of submissions", 403);
+//        }
 
         long numOfSubmissions = submissionRepository.countSubmissionsByUserAndAssignment(userId, assignmentId);
         if (numOfSubmissions >= submissionsLimitPerAssignment) {
+            log.info("HELLO {} {}", numOfSubmissions, submissionsLimitPerAssignment);
             SubmissionProhibition submissionProhibition = SubmissionProhibition.builder()
                     .assignmentId(assignmentId)
                     .userId(userId)
@@ -83,7 +85,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         submission = submissionRepository.save(submission);
         try {
-            submissionEventProducer.sendSubmissionEvent(submission);
+            submissionEventHandler.sendSubmissionEvent(submission);
             return SubmissionMapper.mapToMinimalDTO(submission);
         } catch (JsonProcessingException e) {
             log.error("Unable to send a submission event due to {}", e.getMessage(), e);

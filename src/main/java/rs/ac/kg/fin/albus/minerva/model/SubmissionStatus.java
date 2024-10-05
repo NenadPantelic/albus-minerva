@@ -8,6 +8,8 @@ public enum SubmissionStatus {
     RUNNING,
     // not true
     FAILED,
+    // partially correct
+    PARTIALLY_CORRECT,
     // true
     OK
 
